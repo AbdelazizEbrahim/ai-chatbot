@@ -1,13 +1,13 @@
+/* eslint-disable react/no-children-prop */
 "use client";
 
 import LandingSections from "@/components/LandingSections";
 import { useEffect, useRef, useState } from "react";
 
-import { motion, AnimatePresence} from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useChat } from "@ai-sdk/react";
 
 import ReactMarkdown from "react-markdown";
-import remarkGmf from "remark-gfm";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,17 +27,20 @@ import {
   Loader2,
   ArrowDownCircleIcon,
 } from "lucide-react";
+import remarkGfm from "remark-gfm";
 
 export default function Chat() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showChatIcon, setShowChatIcon] = useState(false);
   const chatIconRef = useRef<HTMLButtonElement>(null);
 
-  const {messages, input, handleInputChange, handleSubmit, isLoading, stop, reload, error} = useChat({ api: "/api/gemini" });
+  const { messages, input, handleInputChange, handleSubmit, isLoading, stop, reload, error } = useChat({ api: "/api/gemini" });
+
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      if(window.scrollY > 200) {
+      if (window.scrollY > 200) {
         setShowChatIcon(true);
       } else {
         setShowChatIcon(false);
@@ -57,35 +60,45 @@ export default function Chat() {
     setIsChatOpen(!isChatOpen);
   }
 
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <LandingSections />
       <AnimatePresence>
-        { showChatIcon && (
+        {showChatIcon && (
           <motion.div
-            initial = {{ opacity: 0, y: 100}}
-            animate = {{ opacity: 1, y: 0}}
-            exit={{ opacity: 0, y:100}}
-            transition={{ duration: 0.2}}
-            className="fixed bottom-4 right-4 z-50">
-              <Button
-                ref={chatIconRef}
-                onClick={toggleChat}
-                size={"icon"}
-                className="rounded-full size-14 p-2 shadow-lg">
-                  {!isChatOpen ? (<MessageCircle className="size-12"/>) : (<ArrowDownCircleIcon/>)}
-                </Button>
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            transition={{ duration: 0.2 }}
+            className="fixed bottom-4 right-4 z-50"
+          >
+            <Button
+              ref={chatIconRef}
+              onClick={toggleChat}
+              size={"icon"}
+              className="rounded-full size-14 p-2 shadow-lg"
+            >
+              {!isChatOpen ? (
+                <MessageCircle className="size-12" />
+              ) : (
+                <ArrowDownCircleIcon />
+              )}
+            </Button>
           </motion.div>
-        )
-
-        } 
+        )}
       </AnimatePresence>
       <AnimatePresence>
         {isChatOpen && (
           <motion.div
-            initial ={{ opacity: 0, scale: 0.8 }}
-            animate ={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8}}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.2 }}
             className="fixed bottom-20 right-4 z-50 w-[95%] md:w-[500px]"
           >
@@ -100,7 +113,7 @@ export default function Chat() {
                   variant={"ghost"}
                   className="px-2 py-0"
                 >
-                  <X className="size-4"/>
+                  <X className="size-4" />
                   <span className="sr-only">Close chat</span>
                 </Button>
               </CardHeader>
@@ -112,14 +125,44 @@ export default function Chat() {
                     </div>
                   )}
                   {messages?.map((message, index) => (
-                    <div key={index} className="flex flex-col items-start space-y-2 px-4 py-3 text-sm">
-                      k,nkj,nsd,mn
+                    <div
+                      key={index}
+                      className={`mb-4 ${message.role === "user" ? "text-right" : "text-left"}`}
+                    >
+                      <div
+                        className={`inline-block rounded-lg p-4 ${message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                          }`}
+                      >
+                        <ReactMarkdown
+                          children={message.content}
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            code({ node, inline, className, children, ...props }) {
+                              return inline ? (
+                                <code {...props} className="bg-gray-200 px-1 rounded">{children}</code>
+                              ) : (
+                                <pre {...props} className="bg-gray-200 p-2 rounded">
+                                  <code>{children}</code>
+                                </pre>
+                              );
+                            },
+                            ul: ({ children }) => (
+                              <ul className="list-disc ml-4">{children}</ul>
+                            ),
+                            ol: ({ children }) => (
+                              <ol className="list-decimal ml-4">{children}</ol>
+                            )
+                          }}
+                        />
+                      </div>
                     </div>
                   ))}
                   {isLoading && (
                     <div className="w-full items-center flex justify-center gap-3">
-                      <Loader2 className="animate-spin h-5 w-5 text-primary"/>
-                      <button 
+                      <Loader2 className="animate-spin h-5 w-5 text-primary" />
+                      <button
                         className="underline"
                         type="button"
                         onClick={() => stop()}
@@ -130,8 +173,8 @@ export default function Chat() {
                   )}
                   {error && (
                     <div className="w-full items-center flex justify-center gap-3">
-                      <div>An error occured.</div>
-                      <button 
+                      <div>An error occurred.</div>
+                      <button
                         className="underline"
                         type="button"
                         onClick={() => reload()}
@@ -140,10 +183,11 @@ export default function Chat() {
                       </button>
                     </div>
                   )}
+                  <div ref={scrollRef}></div>
                 </ScrollArea>
               </CardContent>
               <CardFooter>
-                <form 
+                <form
                   onSubmit={handleSubmit}
                   className="flex w-full items-center space-x-2"
                 >
@@ -151,7 +195,7 @@ export default function Chat() {
                     value={input}
                     onChange={handleInputChange}
                     className="flex-1"
-                    placeholder="Type your message here ..." 
+                    placeholder="Type your message here ..."
                   />
                   <Button
                     className="size-9"
@@ -159,7 +203,7 @@ export default function Chat() {
                     disabled={isLoading}
                     size="icon"
                   >
-                    <Send className="size-4"/>
+                    <Send className="size-4" />
                   </Button>
                 </form>
               </CardFooter>
