@@ -3,7 +3,7 @@
 import LandingSections from "@/components/LandingSections";
 import { useEffect, useRef, useState } from "react";
 
-import { motion, AnimationPresence, AnimatePresence} from 'framer-motion';
+import { motion, AnimatePresence} from 'framer-motion';
 import { useChat } from "@ai-sdk/react";
 
 import ReactMarkdown from "react-markdown";
@@ -25,13 +25,15 @@ import {
   MessageCircle,
   Send,
   Loader2,
-  ArrowDownCircleIcon
+  ArrowDownCircleIcon,
 } from "lucide-react";
 
 export default function Chat() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showChatIcon, setShowChatIcon] = useState(false);
   const chatIconRef = useRef<HTMLButtonElement>(null);
+
+  const {messages, input, handleInputChange, handleSubmit, isLoading, stop, reload, error} = useChat({ api: "/api/gemini" });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -77,6 +79,93 @@ export default function Chat() {
         )
 
         } 
+      </AnimatePresence>
+      <AnimatePresence>
+        {isChatOpen && (
+          <motion.div
+            initial ={{ opacity: 0, scale: 0.8 }}
+            animate ={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8}}
+            transition={{ duration: 0.2 }}
+            className="fixed bottom-20 right-4 z-50 w-[95%] md:w-[500px]"
+          >
+            <Card className="border-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle className="text-lg font-bold">
+                  Chat with NoteWorthy AI
+                </CardTitle>
+                <Button
+                  onClick={toggleChat}
+                  size={"sm"}
+                  variant={"ghost"}
+                  className="px-2 py-0"
+                >
+                  <X className="size-4"/>
+                  <span className="sr-only">Close chat</span>
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[300px] pr-4">
+                  {messages?.length === 0 && (
+                    <div className="w-full mt-32 text-gray-500 items-center justify-center flex gap-3">
+                      No messages yet!
+                    </div>
+                  )}
+                  {messages?.map((message, index) => (
+                    <div key={index} className="flex flex-col items-start space-y-2 px-4 py-3 text-sm">
+                      k,nkj,nsd,mn
+                    </div>
+                  ))}
+                  {isLoading && (
+                    <div className="w-full items-center flex justify-center gap-3">
+                      <Loader2 className="animate-spin h-5 w-5 text-primary"/>
+                      <button 
+                        className="underline"
+                        type="button"
+                        onClick={() => stop()}
+                      >
+                        Abort
+                      </button>
+                    </div>
+                  )}
+                  {error && (
+                    <div className="w-full items-center flex justify-center gap-3">
+                      <div>An error occured.</div>
+                      <button 
+                        className="underline"
+                        type="button"
+                        onClick={() => reload()}
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+              <CardFooter>
+                <form 
+                  onSubmit={handleSubmit}
+                  className="flex w-full items-center space-x-2"
+                >
+                  <Input
+                    value={input}
+                    onChange={handleInputChange}
+                    className="flex-1"
+                    placeholder="Type your message here ..." 
+                  />
+                  <Button
+                    className="size-9"
+                    type="submit"
+                    disabled={isLoading}
+                    size="icon"
+                  >
+                    <Send className="size-4"/>
+                  </Button>
+                </form>
+              </CardFooter>
+            </Card>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
