@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react/no-children-prop */
 "use client";
 
@@ -136,26 +137,29 @@ export default function Chat() {
                           }`}
                       >
                         <ReactMarkdown
-                          children={message.content}
                           remarkPlugins={[remarkGfm]}
                           components={{
-                            code({ node, inline, className, children, ...props }) {
+                            code({ inline, children, ...props }: { inline?: boolean; children: React.ReactNode }) {
                               return inline ? (
-                                <code {...props} className="bg-gray-200 px-1 rounded">{children}</code>
+                                <code {...props} className="bg-gray-200 px-1 rounded">
+                                  {children}
+                                </code>
                               ) : (
                                 <pre {...props} className="bg-gray-200 p-2 rounded">
                                   <code>{children}</code>
                                 </pre>
                               );
                             },
-                            ul: ({ children }) => (
+                            ul: ({ children }: { children: React.ReactNode }) => (
                               <ul className="list-disc ml-4">{children}</ul>
                             ),
-                            ol: ({ children }) => (
+                            ol: ({ children }: { children: React.ReactNode }) => (
                               <ol className="list-decimal ml-4">{children}</ol>
-                            )
+                            ),
                           }}
-                        />
+                        >
+                          {message.content}
+                        </ReactMarkdown>
                       </div>
                     </div>
                   ))}
@@ -186,6 +190,7 @@ export default function Chat() {
                   <div ref={scrollRef}></div>
                 </ScrollArea>
               </CardContent>
+
               <CardFooter>
                 <form
                   onSubmit={handleSubmit}
